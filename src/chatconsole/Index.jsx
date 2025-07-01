@@ -15,7 +15,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 import "../assets/css/bootstrap.css";
-import "../assets/css/style.css";
 import "../assets/fontawesome/css/font-awesome.css";
 import { set, get, del, clear, keys } from 'idb-keyval';
 import { useLocation } from 'react-router-dom';
@@ -242,7 +241,7 @@ const Index = ({ socket }) => {
 	useEffect(() => {
 		socket.on('messagegroupResponse', (data) => {
 			//console.log(data.fld_taskid+'==='+selectedtask);
-
+			data.created_at = getCurrentDateTime();
 			if (data.task_id == selectedtask) {
 				settaskChatData([...taskChatData, data])
 			}
@@ -434,20 +433,20 @@ const Index = ({ socket }) => {
 
 	return (
 		<>
-			<div className="container mx-3">
-				<div className="d-flex align-items-center justify-content-between pt-2 pb-1">
-
-					<h6 className="text-center chat-heading">Communication Hub</h6>
-
-					<button onClick={e => handleSelecttask(taskId)} className="btn bt-sm btn-tertiary p-1"><i className="fa fa-refresh" aria-hidden="true"></i></button>
-
-				</div>
+			<div className="container">
+				
 
 
 
-				<div className="chatdiv">
+				<div className="chat-sec">
+					<div className="d-flex align-items-center justify-content-between mb-2 border-bottom p-2">
+						<h6 className="text-center mb-0 f-14">Communication Hub</h6>
+						<div>
+							<button onClick={e => handleSelecttask(taskId)} className="btn btn-sm btn-secondary f-11"><i className="fa fa-refresh" aria-hidden="true"></i></button>
+						</div>
+					</div>
 
-					<div className="chat-container" id="chatContainer" ref={chatContainerRef}>
+					<div className="chat-sec-container" id="chatContainer" ref={chatContainerRef}>
 
 						{isLoadingMore && (
 							<div style={{ textAlign: 'center', padding: '10px' }}>
@@ -459,7 +458,7 @@ const Index = ({ socket }) => {
 								<img
 									src={emptydata} // Replace with actual image path
 									alt="Start a chat"
-									className="placeholder-image"
+									className="no-chat-img"
 								/>
 							</div>
 						) : (
@@ -472,80 +471,84 @@ const Index = ({ socket }) => {
 									const isIncoming = loggedInid == chatdata.user_id;
 									const fileArray = chatdata.selected_file ? chatdata.selected_file.split('||') : [];
 									const formattedDate = dayjs.utc(chatdata.created_at) // treat input as UTC
-										.tz('Asia/Kolkata') // convert to IST
+										.tz('UTC') // convert to IST
 										.format('h:mm A | D MMMM, YYYY');
 
 									return (
 										<React.Fragment key={chatdata.id}>
 											{isIncoming ? (
-												<div className="chat-card incoming_msg">
+												<div className="chat-card outgoing_msg">
+													<div className='chat-msg-set out-chat-msg'>
+														<div className="chat-avatar">{chatdata.senderShortName}</div>
+															<div className="chat-content">
+																<div className='name-date'>
+																	<strong>{chatdata.sender_fname} {chatdata.sender_lname}</strong>
+																	<span className="chat-time">{formattedDate}</span>
+																</div>
 
-													<div className="chat-avatar">{chatdata.senderShortName}</div>
+																<p> <span dangerouslySetInnerHTML={{ __html: chatdata.message }} /></p>
+																{fileArray.map((filename, index) => {
+																	const fileUrl = `${FILE_PATH}/${filename}`;
+																	const extension = filename.split('.').pop().toLowerCase();
+																	const displayName = filename.substring(filename.indexOf('_') + 1);
+																	const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-													<div className="chat-content">
-
-														<strong>{chatdata.sender_fname} {chatdata.sender_lname}</strong><span className="chat-time">{formattedDate}</span>
-
-														<p> <span dangerouslySetInnerHTML={{ __html: chatdata.message }} /></p>
-														{fileArray.map((filename, index) => {
-															const fileUrl = `${FILE_PATH}/${filename}`;
-															const extension = filename.split('.').pop().toLowerCase();
-															const displayName = filename.substring(filename.indexOf('_') + 1);
-															const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-
-															return (
-																<React.Fragment key={`filebox-${index}`}>
-																	{imageExtensions.includes(extension) ? (
-																		<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedImgData">
-																			<img src={fileUrl} alt={displayName} style={{ width: '150px' }} />
-																		</a>
-																	) : (
-																		<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedFilesData">
-																			{displayName}
-																		</a>
-																	)}
-																	<br />
-																</React.Fragment>
-															);
-														})}
+																	return (
+																		<React.Fragment key={`filebox-${index}`}>
+																			{imageExtensions.includes(extension) ? (
+																				<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedImgData">
+																					<img src={fileUrl} alt={displayName} style={{ width: '150px' }} />
+																				</a>
+																			) : (
+																				<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedFilesData">
+																					{displayName}
+																				</a>
+																			)}
+																			
+																		</React.Fragment>
+																	);
+																})}
 
 
+															</div>
 													</div>
-
 												</div>
 											) : (
-												<div className="chat-card outgoing_msg">
+												<div className="chat-card incoming_msg">
+													<div className='chat-msg-set in-chat-msg'>
+														<div className="chat-avatar">{chatdata.senderShortName}</div>
 
-													<div className="chat-avatar">{chatdata.senderShortName}</div>
+														<div className="chat-content">
+															<div className='name-date'>
+																<strong>{chatdata.sender_fname} {chatdata.sender_lname}</strong>
+																<span className="chat-time">{formattedDate}</span>
+															</div>
 
-													<div className="chat-content">
+															<p> <span dangerouslySetInnerHTML={{ __html: chatdata.message }} /></p>
+															{fileArray.map((filename, index) => {
+																const fileUrl = `${FILE_PATH}/${filename}`;
+																const extension = filename.split('.').pop().toLowerCase();
+																const displayName = filename.substring(filename.indexOf('_') + 1);
+																const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 
-														<strong>{chatdata.sender_fname} {chatdata.sender_lname}</strong><span className="chat-time">{formattedDate}</span>
-
-														<p> <span dangerouslySetInnerHTML={{ __html: chatdata.message }} /></p>
-														{fileArray.map((filename, index) => {
-															const fileUrl = `${FILE_PATH}/${filename}`;
-															const extension = filename.split('.').pop().toLowerCase();
-															const displayName = filename.substring(filename.indexOf('_') + 1);
-															const imageExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-
-															return (
-																<React.Fragment key={`filebox-${index}`}>
-																	{imageExtensions.includes(extension) ? (
-																		<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedImgData">
-																			<img src={fileUrl} alt={displayName} style={{ width: '150px' }} />
-																		</a>
-																	) : (
-																		<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedFilesData">
-																			{displayName}
-																		</a>
-																	)}
-																	<br />
-																</React.Fragment>
-															);
-														})}
+																return (
+																	<React.Fragment key={`filebox-${index}`}>
+																		{imageExtensions.includes(extension) ? (
+																			<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedImgData">
+																				<img src={fileUrl} alt={displayName} style={{ width: '150px' }} />
+																			</a>
+																		) : (
+																			<a href={fileUrl} target="_blank" rel="noopener noreferrer" className="uploadedFilesData">
+																				{displayName}
+																			</a>
+																		)}
+																		
+																	</React.Fragment>
+																);
+															})}
 
 
+														</div>
 													</div>
 
 												</div>
@@ -567,10 +570,10 @@ const Index = ({ socket }) => {
 					/>
 					<div className="chat-footer position-relative">
 
-						<form method="POST" id="communicationForm" className="w-100 d-flex align-items-center justify-content-between">
+						<form method="POST" id="communicationForm" className="w-100">
 
-							<div className="w-100 d-flex row">
-								<div className="col-md-11 pl-0">
+							<div className="d-flex gap-2">
+								<div className="w-100">
 
 									{showSuggestions && suggestions.length > 0 && (
 										<ul
@@ -607,42 +610,30 @@ const Index = ({ socket }) => {
 										className="form-control"
 										tagName="div"
 										style={{
-											minHeight: '100px',
+											minHeight: '90px',
 											border: '1px solid #ccc',
 											padding: '10px',
 											borderRadius: '6px',
-											overflowY: 'auto'
+											overflowY: 'auto',
+											fontSize: '13px'
 										}}
 										placeholder="Type a message... use @ to tag"
 									/>
 
 								</div>
-								<div className="dffc col-md-1 p-0">
+								<div className="">
 
 
-
-									<div className="position-relative">
-
-
-
-									</div>
-
-
-
-									<div>
-										<label className="btn btn-success" htmlFor="file-input">
+									<div className='d-flex flex-column justify-content-end h-100 gap-2'>
+										<label className="btn btn-warning btn-sm f-12" htmlFor="file-input">
 											<i className="fa fa-paperclip" aria-hidden="true"></i>
 										</label>
+									
+										<button type="button" className="btn btn-primary btn-sm f-12" onClick={handleSendMessage} >
+											<i className="fa fa-paper-plane" aria-hidden="true"></i>
+										</button>
 									</div>
 
-
-									<button type="button" className="btn btn-primary"
-										onClick={handleSendMessage}
-									>
-
-										<i className="fa fa-paper-plane" aria-hidden="true"></i>
-
-									</button>
 									{postMsgLoader && <PulseLoader
 										color="#e87a36"
 										loading
@@ -662,6 +653,18 @@ const Index = ({ socket }) => {
 			</div>
 		</>
 	)
+}
+
+function getCurrentDateTime() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0'); // months are 0-based
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}.000Z`;
 }
 
 export default Index

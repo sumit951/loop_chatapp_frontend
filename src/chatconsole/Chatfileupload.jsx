@@ -62,13 +62,13 @@ const Chatfileupload = ({ onFileSelect,parentselectedFiles,setfilesblank }) => {
         <i className="attachment-icon"><i className="fa fa-paperclip "></i></i>
       </label> */}
 
-      <div className="row file-preview">
+      <div className="file-preview">
         {selectedFiles.map((file, index) => (
             <div  key={index} className="file-preview-item">
-            <div className="col-md-11 chip-info">{file.name}</div>
-            <div>
-                <button type="button" className="btn xcross" onClick={() => handleRemoveFile(index)}><i className="fa fa-close ms-1"></i></button>
-            </div>
+              <div className="file-name">{file.name}</div>
+              <div>
+                  <button type="button" className="btn btn-danger btn-sm f-11 p-1 py-0" onClick={() => handleRemoveFile(index)}><i className="fa fa-close"></i></button>
+              </div>
             </div>
         ))}
       </div>
